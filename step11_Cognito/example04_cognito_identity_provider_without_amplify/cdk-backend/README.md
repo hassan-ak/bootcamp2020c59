@@ -71,3 +71,6 @@
      },
    });
    ```
+
+10. Deploy the app using `cdk deploy`
+11. Destroy the app using `cdk destroy`
