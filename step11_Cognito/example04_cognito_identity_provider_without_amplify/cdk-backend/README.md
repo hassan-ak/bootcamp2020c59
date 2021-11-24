@@ -1,14 +1,73 @@
-# Welcome to your CDK TypeScript project!
+# CDK Backend (userPool)
 
-This is a blank project for TypeScript development with CDK.
+## Steps to code
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+1. Create a new directory by using `mkdir cdk-backend`
+2. Naviagte to the newly created directory using `cd cdk-backend`
+3. Create a cdk app using `cdk init app --language typescript`
+4. Use `npm run watch` to auto build our app as we code
+5. Install AWS cognito using `npm i @aws-cdk/aws-cognito`
+6. Update "lib/cdk-backend-stack.ts" to import cognito in the app
 
-## Useful commands
+   ```js
+   import * as cognito from "@aws-cdk/aws-cognito";
+   ```
 
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk synth`       emits the synthesized CloudFormation template
+7. Update "lib/cdk-backend-stack.ts" to define userPool
+
+   ```js
+   const userPool = new cognito.UserPool(this, "bc2020c59-step11-04", {
+     userPoolName: "bc2020c59-step11-04",
+     selfSignUpEnabled: true,
+     userVerification: {
+       emailSubject: "Verify your email for our awesome app!",
+       emailBody:
+         "Hello, Thanks for signing up to our awesome app! Your verification code is {####}",
+       emailStyle: cognito.VerificationEmailStyle.CODE,
+     },
+     signInAliases: {
+       username: true,
+       email: true,
+     },
+     autoVerify: { email: true },
+     signInCaseSensitive: false,
+     standardAttributes: {
+       fullname: {
+         required: true,
+         mutable: true,
+       },
+       email: {
+         required: true,
+         mutable: false,
+       },
+     },
+     accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
+   });
+   ```
+
+8. Update "lib/cdk-backend-stack.ts" to define client
+
+   ```js
+   const client = new cognito.UserPoolClient(this, "app-client", {
+     userPool: userPool,
+     generateSecret: true,
+     oAuth: {
+       flows: {
+         authorizationCodeGrant: true,
+       },
+       scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL],
+       callbackUrls: [`http://localhost:8000/dashboard`],
+       logoutUrls: [`http://localhost:8000`],
+     },
+   });
+   ```
+
+9. Update "lib/cdk-backend-stack.ts" to define domain
+
+   ```js
+   const domain = userPool.addDomain("CognitoDomain", {
+     cognitoDomain: {
+       domainPrefix: "bc2020c58-step11-04",
+     },
+   });
+   ```
